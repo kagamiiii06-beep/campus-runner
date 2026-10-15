@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#FF6B35" />
+<title>帮跑 CampusRun · 校园跑腿互助平台</title>
+<style>
+  :root{
+    --brand:#FF6B35;
+    --brand-2:#FF9E45;
+    --brand-soft:#FFF1E8;
+    --trust:#10B981;
+    --trust-soft:#E7F8F1;
+    --danger:#EF4444;
+    --danger-soft:#FDECEC;
+    --ink:#1F2937;
+    --ink-2:#6B7280;
+    --ink-3:#9CA3AF;
+    --bg:#F5F6FA;
+    --card:#FFFFFF;
+    --line:#ECEEF3;
+    --gold:#F59E0B;
+    --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+    --shadow:0 6px 24px rgba(16,24,40,.08);
+    --shadow-lg:0 12px 40px rgba(16,24,40,.14);
+    --r-sm:10px; --r:14px; --r-lg:20px;
+    --nav-h:64px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:var(--ink);
+    -webkit-font-smoothing:antialiased;line-height:1.5;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,textarea,select{font-family:inherit}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#D6DAE2;border-radius:8px}
+
+  /* ============ 外壳（桌面居中手机壳） ============ */
+  .stage{
+    display:flex;align-items:flex-start;justify-content:center;
+    min-height:100vh;padding:0;
+  }
+  .phone{
+    position:relative;width:100%;max-width:480px;min-height:100vh;
+    background:var(--bg);display:flex;flex-direction:column;
+    box-shadow:var(--shadow-lg);
+  }
+  @media(min-width:520px){
+    .stage{padding:32px 0;background:linear-gradient(160deg,#1F2937 0%,#111827 55%,#0B1020 100%)}
+    .phone{min-height:calc(100vh - 64px);height:calc(100vh - 64px);border-radius:28px;overflow:hidden}
+  }
+
+  /* ============ 顶栏 ============ */
+  .topbar{
+    position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);
+    backdrop-filter:blur(12px);padding:14px 16px 10px;border-bottom:1px solid var(--line);
+  }
+  .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand .logo{
+    width:34px;height:34px;border-radius:10px;flex:none;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    display:grid;place-items:center;font-size:18px;box-shadow:0 3px 8px rgba(255,107,53,.35);
+  }
+  .brand .name{font-weight:800;font-size:17px;letter-spacing:-.3px}
+  .brand .name small{display:block;font-weight:600;font-size:10px;color:var(--ink-3);letter-spacing:.4px}
+  .credit-pill{
+    display:flex;align-items:center;gap:6px;background:var(--trust-soft);color:#0A7B55;
+    border:1px solid #C9EFDF;border-radius:999px;padding:5px 11px;font-weight:700;font-size:12px;
+  }
+  .credit-pill b{font-size:14px}
+  .topbar .sub{font-size:12px;color:var(--ink-3);margin-top:9px;display:flex;gap:14px;flex-wrap:wrap}
+  .topbar .sub span{display:inline-flex;align-items:center;gap:4px}
+
+  /* ============ 内容区 ============ */
+  .view{flex:1;overflow-y:auto;padding:14px 16px 96px;display:none;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ============ 底部导航 ============ */
+  .navbar{
+    position:absolute;bottom:0;left:0;right:0;z-index:30;
+    height:var(--nav-h);
+    background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);display:flex;align-items:stretch;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .navbar .tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    color:var(--ink-3);font-size:10.5px;font-weight:600;transition:color .15s;
+  }
+  .navbar .tab .ico{font-size:20px;line-height:1;filter:grayscale(1);opacity:.55;transition:.15s}
+  .navbar .tab.on{color:var(--brand)}
+  .navbar .tab.on .ico{filter:none;opacity:1}
+  .navbar .fab{
+    flex:none;width:58px;height:58px;margin-top:-22px;border-radius:50%;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    color:#fff;font-size:28px;font-weight:400;display:grid;place-items:center;
+    box-shadow:0 8px 20px rgba(255,107,53,.45);border:4px solid #fff;transition:transform .15s;
+  }
+  .navbar .fab:active{transform:scale(.92)}
+  .navbar .fab-label{position:absolute;margin-top:58px;font-size:10px;color:var(--ink-3);font-weight:600}
+
+  /* ============ 通用组件 ============ */
+  .h2{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;margin:4px 0 12px}
+  .h2 .cnt{font-size:11px;font-weight:600;color:var(--ink-3);background:var(--card);border:1px solid var(--line);padding:2px 8px;border-radius:999px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+  .chip-row{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+  .chip-row::-webkit-scrollbar{display:none}
+  .chip{flex:none;padding:7px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);
+    font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap;transition:.15s}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chip .emoji{margin-right:3px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    padding:11px 18px;border-radius:12px;font-weight:700;font-size:14px;transition:.15s}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;box-shadow:0 6px 16px rgba(255,107,53,.32)}
+  .btn-ghost{background:var(--card);border:1px solid var(--line);color:var(--ink)}
+  .btn-trust{background:var(--trust-soft);color:#0A7B55;border:1px solid #C9EFDF}
+  .btn-danger{background:var(--danger-soft);color:var(--danger);border:1px solid #F3C6C6}
+  .btn-block{width:100%}
+  .btn-sm{padding:7px 13px;font-size:12.5px;border-radius:10px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .empty{text-align:center;padding:44px 20px;color:var(--ink-3)}
+  .empty .big{font-size:44px;margin-bottom:10px}
+  .empty p{font-size:13px}
+
+  /* 徽章 */
+  .badge{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;padding:2.5px 8px;border-radius:6px}
+  .badge.lv{background:#FFF7E0;color:#B45309;border:1px solid #F5E3A8}
+  .badge.ok{background:var(--trust-soft);color:#0A7B55}
+  .badge.ver{background:#EEF1FF;color:#4F5BD5;border:1px solid #DDE1FB}
+  .badge.warn{background:var(--danger-soft);color:var(--danger)}
+  .tag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px;flex:none}
+
+  /* ============ 任务卡片 ============ */
+  .task{display:flex;gap:12px;padding:14px;margin-bottom:12px;align-items:flex-start}
+  .task .ticon{width:46px;height:46px;border-radius:12px;flex:none;display:grid;place-items:center;font-size:22px}
+  .task .tmain{flex:1;min-width:0}
+  .task .ttitle{font-size:14.5px;font-weight:700;line-height:1.35;margin-bottom:3px}
+  .task .tdesc{font-size:12.5px;color:var(--ink-2);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .task .tmeta{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--ink-2);margin-bottom:8px}
+  .task .tmeta b{color:var(--ink);font-weight:700}
+  .task .tfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;border-top:1px dashed var(--line)}
+  .task .pub{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-2);min-width:0}
+  .task .pub .ava{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:#F1F3F8;flex:none}
+  .task .pub b{color:var(--ink)}
+  .task .reward{color:var(--brand);font-weight:800;font-size:15px;white-space:nowrap}
+  .task .reward small{font-size:11px;font-weight:600}
+  .status-flag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px}
+
+  .ticon.c快递{background:#EEF1FF}
+  .ticon.c买{background:var(--trust-soft)}
+  .ticon.c占座{background:#FFF7E0}
+  .ticon.c送{background:var(--brand-soft)}
+  .ticon.c排队{background:#F3E8FF}
+  .ticon.c其他{background:#F1F3F8}
+
+  /* ============ 发布表单 ============ */
+  .form .field{margin-bottom:16px}
+  .form label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:7px}
+  .form input,.form textarea,.form select{
+    width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font-size:14px;
+    background:var(--card);color:var(--ink);outline:none;transition:border .15s}
+  .form input:focus,.form textarea:focus,.form select:focus{border-color:var(--brand)}
+  .form textarea{resize:none;min-height:76px}
+  .type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .type-opt{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:12px;
+    border:1.5px solid var(--line);background:var(--card);font-size:12px;font-weight:600;color:var(--ink-2);transition:.15s}
+  .type-opt .e{font-size:22px}
+  .type-opt.on{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+  .seg{display:flex;background:#EEF0F5;border-radius:10px;padding:3px}
+  .seg button{flex:1;padding:7px 4px;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+  .seg button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .hint{font-size:11.5px;color:var(--ink-3);margin-top:6px}
+  .reward-opt{display:flex;gap:8px;flex-wrap:wrap}
+  .reward-opt button{padding:8px 13px;border-radius:10px;border:1.5px solid var(--line);font-size:13px;font-weight:700;color:var(--ink-2);background:var(--card)}
+  .reward-opt button.on{border-color:var(--brand);color:var(--brand);background:var(--brand-soft)}
+
+  /* ============ 信用页 ============ */
+  .credit-hero{position:relative;border-radius:var(--r-lg);padding:20px;color:#fff;overflow:hidden;margin-bottom:14px;
+    background:linear-gradient(135deg,#232B45 0%,#141A2E 100%)}
+  .credit-hero::after{content:'';position:absolute;right:-30px;top:-30px;width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,107,53,.35),transparent 70%)}
+  .credit-hero .lv-line{font-size:12px;font-weight:700;opacity:.85;letter-spacing:.5px}
+  .credit-hero .score{font-size:46px;font-weight:800;line-height:1;margin:6px 0 2px;position:relative;z-index:1}
+  .credit-hero .score small{font-size:14px;font-weight:600;opacity:.7}
+  .bar{height:8px;background:rgba(255,255,255,.18);border-radius:99px;margin:12px 0 6px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-2));border-radius:99px;transition:width .5s}
+  .credit-hero .tip{font-size:11.5px;opacity:.8;position:relative;z-index:1}
+  .rule-list{display:flex;flex-direction:column;gap:8px}
+  .rule{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:13px}
+  .rule .delta{font-weight:800;font-size:13px;width:44px;flex:none;text-align:center;border-radius:8px;padding:3px 0}
+  .rule .delta.plus{background:var(--trust-soft);color:#0A7B55}
+  .rule .delta.minus{background:var(--danger-soft);color:var(--danger)}
+  .rank-item{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line);font-size:13px}
+  .rank-item:last-child{border-bottom:none}
+  .rank-item .no{width:22px;text-align:center;font-weight:800;color:var(--ink-3);font-size:14px}
+  .rank-item.top .no{color:var(--gold)}
+  .rank-item .ava{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:15px;background:#F1F3F8;flex:none}
+  .rank-item .info{flex:1;min-width:0}
+  .rank-item .info b{font-size:13.5px}
+  .rank-item .info span{display:block;font-size:11px;color:var(--ink-3)}
+  .rank-item .score{font-weight:800;font-size:14px;color:var(--brand)}
+  .log-item{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line);font-size:12.5px}
+  .log-item:last-child{border-bottom:none}
+  .log-item .e{font-size:16px}
+  .log-item .t{flex:1;min-width:0}
+  .log-item .t small{display:block;color:var(--ink-3);font-size:10.5px}
+  .log-item .d{font-weight:800;font-size:13px}
+
+  /* ============ 我的页 ============ */
+  .me-head{display:flex;align-items:center;gap:14px;padding:18px;margin-bottom:14px}
+  .me-head .ava{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    display:grid;place-items:center;font-size:30px;color:#fff;box-shadow:0 6px 16px rgba(255,107,53,.3);flex:none}
+  .me-head .n{font-size:18px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .me-head .s{font-size:12px;color:var(--ink-3);margin-top:3px}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 8px;text-align:center}
+  .stat b{font-size:20px;font-weight:800;display:block}
+  .stat span{font-size:11px;color:var(--ink-3)}
+  .wallet{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;margin-bottom:14px}
+  .wallet .l{font-size:12px;color:var(--ink-2);font-weight:600}
+  .wallet .l b{display:block;font-size:22px;color:var(--ink);font-weight:800}
+  .wallet .l b small{font-size:12px;color:var(--ink-3)}
+  .menu{overflow:hidden;margin-bottom:14px}
+  .menu-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);font-size:13.5px;font-weight:600}
+  .menu-item:last-child{border-bottom:none}
+  .menu-item .e{font-size:18px}
+  .menu-item .r{margin-left:auto;color:var(--ink-3);font-size:12px;font-weight:500}
+  .menu-item .switch{margin-left:auto}
+
+  /* ============ 弹层/Toast ============ */
+  .mask{position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:50;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(2px)}
+  .mask.show{display:flex;animation:fade .2s ease}
+  .sheet{background:#fff;border-radius:20px;width:100%;max-width:400px;max-height:86vh;overflow-y:auto;padding:22px;box-shadow:var(--shadow-lg)}
+  .sheet h3{font-size:16px;font-weight:800;margin-bottom:14px;text-align:center}
+  .sheet .close{position:absolute}
+  .stars{display:flex;justify-content:center;gap:6px;font-size:34px;margin:8px 0 14px}
+  .stars button{transition:transform .12s;filter:grayscale(1);opacity:.4}
+  .stars button.on{filter:none;opacity:1;transform:scale(1.08)}
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);z-index:60;
+    background:#1F2937;color:#fff;padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:600;
+    box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:.3s;max-width:85%;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .details{margin-bottom:12px}
+  .details .drow{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;color:var(--ink-2)}
+  .details .drow b{color:var(--ink);font-weight:700}
+  .safe-note{display:flex;gap:9px;align-items:flex-start;background:#F0F6FF;border:1px solid #D7E6FF;border-radius:12px;padding:11px 12px;font-size:12px;color:#3A5BA0;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="stage">
+<div class="phone">
+
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="brand">
+        <div class="logo">🦆</div>
+        <div class="name">帮跑<small>CAMPUS RUN</small></div>
+      </div>
+      <button class="credit-pill" data-go="credit">⭐ 信用 <b id="topCredit">--</b></button>
+    </div>
+    <div class="sub">
+      <span>🏫 华东理工大学 · 徐汇校区</span>
+      <span id="todayWeather">☀️ 晴 24°C</span>
+    </div>
+  </header>
+
+  <!-- ============ 大厅 ============ -->
+  <main class="view active" id="v-home">
+    <div class="h2">跑腿大厅 <span class="cnt" id="homeCnt">0</span></div>
+    <div class="chip-row" id="typeChips"></div>
+    <div class="chip-row" style="padding-top:0" id="sortChips"></div>
+    <div id="taskList"></div>
+  </main>
+
+  <!-- ============ 订单 ============ -->
+  <main class="view" id="v-orders">
+    <div class="h2">我的订单</div>
+    <div class="seg" style="margin-bottom:12px">
+      <button class="on" data-role="pub">我发布的</button>
+      <button data-role="take">我接的</button>
+    </div>
+    <div class="chip-row" id="statusChips"></div>
+    <div id="orderList"></div>
+  </main>
+
+  <!-- ============ 信用 ============ -->
+  <main class="view" id="v-credit">
+    <div class="credit-hero">
+      <div class="lv-line" id="crLevel">LV. 白银跑腿者</div>
+      <div class="score" id="crScore">--<small>/1000</small></div>
+      <div class="bar"><i id="crBar" style="width:0%"></i></div>
+      <div class="tip" id="crTip">再得 -- 分升级</div>
+    </div>
+
+    <div class="h2">信用怎么算</div>
+    <div class="rule-list" style="margin-bottom:16px">
+      <div class="rule">✅ 完成一笔订单 <span class="delta plus" style="margin-left:auto">+5</span></div>
+      <div class="rule">👍 收到对方好评 <span class="delta plus" style="margin-left:auto">+2</span></div>
+      <div class="rule">🎖 按时交付率 100% <span class="delta plus" style="margin-left:auto">+3</span></div>
+      <div class="rule">💢 收到差评 <span class="delta minus" style="margin-left:auto">-10</span></div>
+      <div class="rule">🚫 接单后爽约 <span class="delta minus" style="margin-left:auto">-30</span></div>
+    </div>
+
+    <div class="h2">🏆 跑腿达人榜</div>
+    <div class="card" style="margin-bottom:16px" id="rankList"></div>
+
+    <div class="h2">信用明细</div>
+    <div class="card" id="creditLog"></div>
+  </main>
+
+  <!-- ============ 我的 ============ -->
+  <main class="view" id="v-me">
+    <div class="card me-head">
+      <div class="ava">🦆</div>
+      <div>
+        <div class="n" id="meName">我</div>
+        <div class="s">华东理工大学 · 计算机学院 · 大三</div>
+        <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">
+          <span class="badge ver">✅ 学生认证</span>
+          <span class="badge ok">🛡 实名认证</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><b id="stDone">0</b><span>完成跑腿</span></div>
+      <div class="stat"><b id="stPub">0</b><span>发布任务</span></div>
+      <div class="stat"><b id="stGood">0%</b><span>好评率</span></div>
+    </div>
+
+    <div class="card wallet">
+      <div class="l">钱包余额（担保金）<b>¥ <span id="wallet">0.00</span> <small>可用</small></b></div>
+      <button class="btn btn-ghost btn-sm">充值</button>
+    </div>
+
+    <div class="card menu">
+      <div class="menu-item"><span class="e">🛡</span> 担保支付 <span class="r">进行中订单 ¥<span id="escrow">0</span></span></div>
+      <div class="menu-item"><span class="e">🎫</span> 学生证 / 一卡通 <span class="r">已绑定</span></div>
+      <div class="menu-item"><span class="e">📍</span> 常用地址 <span class="r">3 个</span></div>
+      <div class="menu-item"><span class="e">🔔</span> 消息提醒 <span class="r">开启</span></div>
+      <div class="menu-item"><span class="e">🆘</span> 紧急求助与举报 <span class="r">›</span></div>
+      <div class="menu-item"><span class="e">ℹ️</span> 关于帮跑 <span class="r">v1.0</span></div>
+    </div>
+
+    <div class="card" style="padding:14px 16px;text-align:center;font-size:11.5px;color:var(--ink-3);line-height:1.7">
+      🦆 同学帮同学 · 小事不用愁<br>由「帮跑」担保支付 + 信用体系守护每一单
+    </div>
+  </main>
+
+  <!-- ============ 发布 ============ -->
+  <main class="view" id="v-publish">
+    <div class="h2">发布跑腿任务</div>
+    <div class="safe-note" style="margin-bottom:14px">
+      <span>🛡</span>
+      <span>发布即担保：赏金会先从你的钱包托管到平台，同学送达后自动结算。若无人接单可随时取消，赏金原路退回。</span>
+    </div>
+
+    <div class="form">
+      <div class="field">
+        <label>任务类型</label>
+        <div class="type-grid" id="pubType"></div>
+      </div>
+      <div class="field">
+        <label>任务标题</label>
+        <input id="pubTitle" maxlength="24" placeholder="一句话说清楚要做什么">
+      </div>
+      <div class="field">
+        <label>详细说明</label>
+        <textarea id="pubDesc" maxlength="140" placeholder="例如：取东门菜鸟驿站 3-2-104 的快递，重 2kg，放 12 号楼楼下即可"></textarea>
+        <div class="hint"><span id="descCnt">0</span>/140</div>
+      </div>
+      <div class="field">
+        <label>赏金（¥）</label>
+        <div class="reward-opt" id="pubReward"></div>
+      </div>
+      <div class="field">
+        <label>送达地点</label>
+        <select id="pubLoc"></select>
+      </div>
+      <div class="field">
+        <label>最晚送达</label>
+        <div class="seg" id="pubDeadline">
+          <button data-h="2" class="on">2 小时内</button>
+          <button data-h="6">今天内</button>
+          <button data-h="24">明天前</button>
+        </div>
+      </div>
+      <div class="field" style="display:flex;gap:14px;align-items:center">
+        <label style="margin:0">🚨 加急</label>
+        <button class="seg-btn" id="pubUrgent" style="margin-left:auto"></button>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" id="doPublish">发布任务 · 担保 ¥<span id="pubPay">0</span></button>
+    <div class="hint" style="text-align:center;margin-top:10px">发布后其他同学即可在「跑腿大厅」看到并接单</div>
+  </main>
+
+  <!-- 弹层 -->
+  <div class="mask" id="mask">
+    <div class="sheet" id="sheet"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- 底部导航 -->
+  <nav class="navbar">
+    <button class="tab on" data-view="home"><span class="ico">🏠</span>大厅</button>
+    <button class="tab" data-view="orders"><span class="ico">📋</span>订单</button>
+    <button class="fab" data-view="publish">＋<span class="fab-label">发布</span></button>
+    <button class="tab" data-view="credit"><span class="ico">⭐</span>信用</button>
+    <button class="tab" data-view="me"><span class="ico">👤</span>我的</button>
+  </nav>
+</div>
+</div>
+
+<script>
+/* ================= 数据 ================= */
+const CATS = {
+  '快递':{emoji:'📦', name:'代取快递', color:'c快递'},
+  '买':{emoji:'🛒', name:'代买物品', color:'c买'},
+  '占座':{emoji:'🪑', name:'代占座', color:'c占座'},
+  '送':{emoji:'📨', name:'代送东西', color:'c送'},
+  '排队':{emoji:'🎟️', name:'代排队', color:'c排队'},
+  '其他':{emoji:'✨', name:'其他', color:'c其他'},
+};
+const LOCS = ['12号楼宿舍区','东门菜鸟驿站','图书馆 3F','二食堂门口','快递服务中心','西区快递柜','一教 101 教室','操场看台'];
+const DEADLINE = {2:'2小时内',6:'今天内',24:'明天前'};
+const REWARDS = [3,5,8,12,20];
+
+function levelOf(c){
+  if(c>=900) return {name:'钻石跑腿者',emoji:'💎',next:1000};
+  if(c>=750) return {name:'黄金跑腿者',emoji:'🥇',next:900};
+  if(c>=600) return {name:'白银跑腿者',emoji:'🥈',next:750};
+  return {name:'青铜跑腿者',emoji:'🥉',next:600};
+}
+const AVATARS = ['🦆','🐱','🐶','🐼','🦊','🐰','🐯','🐨','🐷','🐸'];
+const NAMES = ['小林','阿哲','柚子','老王','阿May','皮皮','可乐','小北','大熊','橙子'];
+
+function rnd(n){return Math.floor(Math.random()*n)}
+function uid(p){return p+'_'+Date.now().toString(36)+rnd(999)}
+
+/* 初始状态 */
+function seed(){
+  const users = {};
+  const mkU = (i,credit)=>({
+    id:'u'+i, name:NAMES[i], avatar:AVATARS[i], credit, verified:true,
+    school:'华东理工大学', done: 8+rnd(40), goodRate: 92+rnd(8),
+  });
+  for(let i=0;i<10;i++) users['u'+i] = mkU(i, 560 + rnd(360));
+
+  const tasks = [
+    t('快递','代取快递 · 中通 3 件','菜鸟驿站 3-2-104 取中通快递，重约 2kg，送到 12 号楼楼下就行',8,2,'东门菜鸟驿站','u1',{open:true}),
+    t('买','代买二食堂黄焖鸡','二食堂一楼黄焖鸡米饭 大份 微辣，加一个蛋，送到图书馆 3F 自习区',5,2,'二食堂门口','u2',{open:true}),
+    t('占座','图书馆 3F 靠窗座位','帮我占 3F 靠窗双人位，下午 2 点到，我 2:30 左右到',3,6,'图书馆 3F','u3',{open:true}),
+    t('送','送一份材料到教务处','把这份入党材料从 12 号楼送到行政楼教务处（2 楼 208），急！',12,2,'12号楼宿舍区','u4',{open:true,urgent:true}),
+    t('买','代买奶茶 · 桂花酒酿','西门一点点 桂花酒酿奶茶 去冰三分糖，送到一教 101',6,2,'西门奶茶店','u5',{open:true}),
+    t('排队','代排队 · 快递中心','帮我在快递服务中心排队取顺丰件，人很多，取到后放到西区快递柜',8,6,'快递服务中心','u6',{open:true}),
+    t('快递','代取快递 · 顺丰冷链','顺丰冷链，需要尽快取，是生鲜，取到后放 12 号楼 1 楼冰柜',15,2,'快递服务中心','u7',{open:true,urgent:true}),
+    t('其他','代打印 20 页资料','帮我打印《数据结构》课件 20 页，双面黑白，送到图书馆 3F',4,24,'图书馆 3F','u8',{open:true}),
+  ];
+
+  // 一条我发布的进行中订单（演示担保流程）
+  tasks.push({
+    id: uid('t'), type:'买', title:'代买早餐 · 豆浆油条', desc:'食堂一楼买一份豆浆+油条+茶叶蛋，送到 12 号楼 405', reward:5, deadline:2,
+    loc:'二食堂门口', publisherId:'me', takerId:'u9', status:'doing', urgent:false, at: Date.now()-3600e3,
+    rating:null,
+  });
+
+  return {
+    me:{id:'me', name:'我', avatar:'🦆', credit:712, wallet:46, done:23, pub:6, goodRate:98},
+    users, tasks,
+    creditLog:[
+      {e:'✅', t:'完成订单「代取快递 · 圆通」', d:+5, at:Date.now()-2*86400e3},
+      {e:'👍', t:'收到「小林」好评', d:+2, at:Date.now()-3*86400e3},
+      {e:'✅', t:'完成订单「代买奶茶」', d:+5, at:Date.now()-4*86400e3},
+    ],
+    view:'home', typeFilter:'全部', sort:'latest', statusFilter:'全部', orderRole:'pub',
+    pub:{type:'快递', reward:5, deadline:2, urgent:false},
+  };
+}
+
+function t(type,title,desc,reward,deadline,loc,pub,opt={}){
+  return {id:uid('t'), type, title, desc, reward, deadline, loc,
+    publisherId:pub, takerId:null, status:'open', urgent:!!opt.urgent,
+    at: Date.now() - rnd(20)*3600e3, rating:null};
+}
+
+/* ================= 持久化 ================= */
+const KEY='campusrun_v1';
+let S = (()=>{
+  try{ const raw=localStorage.getItem(KEY); if(raw) return JSON.parse(raw);}catch(e){}
+  return seed();
+})();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function reset(){ S=seed(); save(); render(); }
+
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+
+/* ================= 渲染 ================= */
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function render(){ renderTop(); renderHome(); renderOrders(); renderCredit(); renderMe(); renderPublish(); save(); }
+
+function renderTop(){
+  $('#topCredit').textContent = S.me.credit;
+}
+
+/* 大厅 */
+function renderHome(){
+  const types=['全部','快递','买','占座','送','排队','其他'];
+  $('#typeChips').innerHTML = types.map(k=>
+    `<button class="chip ${S.typeFilter===k?'on':''}" data-type="${k}">${k==='全部'?'全部':CATS[k].emoji+' '+CATS[k].name}</button>`).join('');
+  const sorts=[['latest','🕐 最新发布'],['reward','💰 赏金最高'],['near','📍 距离最近']];
+  $('#sortChips').innerHTML = sorts.map(([k,l])=>
+    `<button class="chip ${S.sort===k?'on':''}" data-sort="${k}">${l}</button>`).join('');
+
+  let list = S.tasks.filter(x=> x.status==='open');
+  if(S.typeFilter!=='全部') list=list.filter(x=>x.type===S.typeFilter);
+  if(S.sort==='reward') list=[...list].sort((a,b)=>b.reward-a.reward);
+  else if(S.sort==='near') list=[...list].sort((a,b)=>a.reward-b.reward);
+  else list=[...list].sort((a,b)=>b.at-a.at);
+
+  $('#homeCnt').textContent = list.length;
+  const el=$('#taskList');
+  if(!list.length){ el.innerHTML=`<div class="empty"><div class="big">🍃</div><p>暂时没有符合条件的任务<br>点下方「＋」发布一个吧</p></div>`; return; }
+
+  el.innerHTML = list.map(taskCard).join('');
+}
+
+function pubBadge(tid){
+  if(tid==='me') return {name:'我', avatar:'🦆', credit:S.me.credit};
+  const u=S.users[tid]; return u||{name:'同学', avatar:'🙂', credit:0};
+}
+function lvBadge(c){
+  const l=levelOf(c);
+  return `<span class="badge lv">${l.emoji} ${l.name.replace('跑腿者','')} · ${c}分</span>`;
+}
+function taskCard(t){
+  const c=CATS[t.type]||CATS['其他'];
+  const p=pubBadge(t.publisherId);
+  const meta = `🕐 ${DEADLINE[t.deadline]||'今天内'} · 📍 ${t.loc}`;
+  return `<div class="card task" data-id="${t.id}">
+    <div class="ticon ${c.color}">${c.emoji}</div>
+    <div class="tmain">
+      <div class="ttitle">${esc(t.title)} ${t.urgent?'<span class="tag" style="background:var(--danger-soft);color:var(--danger)">加急</span>':''}</div>
+      <div class="tdesc">${esc(t.desc)}</div>
+      <div class="tmeta"><span>${meta}</span></div>
+      <div class="tfoot">
+        <span class="pub"><span class="ava">${p.avatar}</span><b>${esc(p.name)}</b>${lvBadge(p.credit)}</span>
+        <span class="reward">¥${t.reward} <small>赏金</small></span>
+        <button class="btn btn-primary btn-sm" data-act="take" data-id="${t.id}">接单</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* 订单 */
+function renderOrders(){
+  $$('#v-orders .seg button').forEach(b=>b.classList.toggle('on', b.dataset.role===S.orderRole));
+  const sts=['全部','待接单','进行中','待确认','已完成'];
+  $('#statusChips').innerHTML = sts.map(k=>
+    `<button class="chip ${S.statusFilter===k?'on':''}" data-status="${k}">${k}</button>`).join('');
+
+  let list = S.tasks.filter(x=>{
+    if(S.orderRole==='pub') return x.publisherId==='me';
+    return x.takerId==='me';
+  });
+  if(S.statusFilter!=='全部'){
+    const map={待接单:'open',进行中:'doing',待确认:'confirm',已完成:'done'};
+    list=list.filter(x=>x.status===map[S.statusFilter]);
+  }
+  list=[...list].sort((a,b)=> b.at-a.at);
+
+  const el=$('#orderList');
+  if(!list.length){ el.innerHTML=`<div class="empty"><div class="big">📭</div><p>还没有${S.orderRole==='pub'?'发布':'接'}的单子</p></div>`; return; }
+  el.innerHTML = list.map(orderCard).join('');
+}
+
+const ST = {open:['待接单','#F1F3F8','#6B7280'],doing:['进行中','#EEF1FF','#4F5BD5'],
+  confirm:['待确认','#FFF7E0','#B45309'],done:['已完成','var(--trust-soft)','#0A7B55']};
+
+function orderCard(t){
+  const c=CATS[t.type];
+  const isPub = t.publisherId==='me';
+  const [label,bg,fg]=ST[t.status];
+  let opp = isPub ? pubBadge(t.takerId) : pubBadge(t.publisherId);
+  const oppLabel = isPub ? '跑腿者' : '发布者';
+  let actions='';
+  if(t.status==='open' && isPub){
+    actions=`<button class="btn btn-ghost btn-sm" data-act="simTake" data-id="${t.id}">模拟接单</button>
+             <button class="btn btn-ghost btn-sm" data-act="cancel" data-id="${t.id}">取消</button>`;
+  }
+  if(t.status==='doing' && !isPub) actions=`<button class="btn btn-trust btn-sm" data-act="deliver" data-id="${t.id}">我已送达</button>`;
+  if(t.status==='doing' && isPub) actions=`<button class="btn btn-ghost btn-sm" data-act="simDeliver" data-id="${t.id}">模拟对方送达</button>`;
+  if(t.status==='confirm' && isPub) actions=`<button class="btn btn-primary btn-sm" data-act="confirm" data-id="${t.id}">确认收货</button>`;
+  if(t.status==='confirm' && !isPub) actions=`<button class="btn btn-ghost btn-sm" data-act="simConfirm" data-id="${t.id}">模拟对方确认</button>`;
+  if(t.status==='done' && !t.rating) actions=`<button class="btn btn-primary btn-sm" data-act="rate" data-id="${t.id}">评价</button>`;
+  if(t.status==='done' && t.rating) actions=`<span class="status-flag" style="background:var(--trust-soft);color:#0A7B55">已评价 ✓</span>`;
+
+  return `<div class="card task" data-id="${t.id}">
+    <div class="ticon ${c.color}">${c.emoji}</div>
+    <div class="tmain">
+      <div class="ttitle">${esc(t.title)}</div>
+      <div class="tmeta" style="margin:4px 0 8px">
+        <span class="status-flag" style="background:${bg};color:${fg}">${label}</span>
+        <span>🕐 ${DEADLINE[t.deadline]||'今天内'}</span>
+      </div>
+      <div class="tfoot" style="border-top:none;padding-top:0">
+        <span class="pub"><span class="ava">${opp.avatar}</span>${oppLabel}：<b>${esc(opp.name)}</b></span>
+        <span class="reward">¥${t.reward}</span>
+        ${actions}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* 信用 */
+function renderCredit(){
+  const c=S.me.credit; const l=levelOf(c);
+  $('#crLevel').textContent = `${l.emoji} LV.${l.name}`;
+  $('#crScore').innerHTML = `${c}<small>/1000</small>`;
+  const pct = Math.min(100, Math.round(c/1000*100));
+  $('#crBar').style.width = pct+'%';
+  $('#crTip').textContent = c>=1000 ? '已达最高等级 🎉' : `距离 ${l.next} 分（${l.emoji}）还差 ${l.next-c} 分`;
+
+  const rank=[...Object.values(S.users)].sort((a,b)=>b.credit-a.credit).slice(0,5);
+  $('#rankList').innerHTML = rank.map((u,i)=>`
+    <div class="rank-item ${i<3?'top':''}">
+      <span class="no">${i+1}</span>
+      <span class="ava">${u.avatar}</span>
+      <div class="info"><b>${esc(u.name)}</b><span>完成 ${u.done} 单 · 好评率 ${u.goodRate}%</span></div>
+      <span class="score">${u.credit}</span>
+    </div>`).join('');
+
+  $('#creditLog').innerHTML = S.creditLog.length
+    ? S.creditLog.map(l=>`<div class="log-item"><span class="e">${l.e}</span>
+        <span class="t">${esc(l.t)}<small>${timeAgo(l.at)}</small></span>
+        <span class="d" style="color:${l.d>0?'var(--trust)':'var(--danger)'}">${l.d>0?'+':''}${l.d}</span></div>`).join('')
+    : `<div class="empty" style="padding:24px"><p>暂无记录</p></div>`;
+}
+
+/* 我的 */
+function renderMe(){
+  $('#meName').innerHTML = `${S.me.name} <span class="badge lv">${levelOf(S.me.credit).emoji} ${levelOf(S.me.credit).name}</span>`;
+  $('#stDone').textContent = S.me.done;
+  $('#stPub').textContent = S.me.pub;
+  $('#stGood').textContent = S.me.goodRate+'%';
+  $('#wallet').textContent = S.me.wallet.toFixed(2);
+  const escrow = S.tasks.filter(t=>(t.publisherId==='me'&&(t.status==='doing'||t.status==='confirm'))).reduce((s,t)=>s+t.reward,0);
+  $('#escrow').textContent = escrow;
+}
+
+/* 发布 */
+function renderPublish(){
+  const p=S.pub;
+  $('#pubType').innerHTML = Object.entries(CATS).map(([k,v])=>
+    `<button class="type-opt ${p.type===k?'on':''}" data-type="${k}"><span class="e">${v.emoji}</span>${v.name.replace('代','').replace('物品','')}</button>`).join('');
+  $('#pubReward').innerHTML = REWARDS.map(r=>
+    `<button class="${p.reward===r?'on':''}" data-r="${r}">¥${r}</button>`).join('');
+  $('#pubLoc').innerHTML = LOCS.map(l=>`<option>${l}</option>`).join('');
+  $$('#pubDeadline button').forEach(b=>b.classList.toggle('on', +b.dataset.h===p.deadline));
+  $('#pubPay').textContent = p.reward;
+  renderUrgent();
+}
+function renderUrgent(){
+  const u=S.pub.urgent;
+  $('#pubUrgent').innerHTML = u ? '🔴 已开启加急' : '⚪ 点击开启';
+  $('#pubUrgent').style.color = u ? 'var(--danger)' : 'var(--ink-3)';
+  $('#pubUrgent').style.fontWeight='700';
+}
+
+/* ================= 交互 ================= */
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function timeAgo(ts){
+  const m=Math.max(0,(Date.now()-ts)/60000);
+  if(m<1) return '刚刚'; if(m<60) return Math.round(m)+' 分钟前';
+  const h=m/60; if(h<24) return Math.round(h)+' 小时前'; return Math.round(h/24)+' 天前';
+}
+
+function switchView(v){
+  S.view=v;
+  $$('.view').forEach(el=>el.classList.toggle('active', el.id==='v-'+v));
+  $$('.navbar .tab').forEach(el=>el.classList.toggle('on', el.dataset.view===v));
+  // 顶部栏：非大厅时也可返回
+  $('.phone').scrollTop=0;
+  const vv=$('#v-'+v); if(vv) vv.scrollTop=0;
+}
+
+function addCredit(delta, label){
+  S.me.credit = Math.max(0, S.me.credit + delta);
+  S.creditLog.unshift({e:delta>0?'✅':'⚠️', t:label, d:delta, at:Date.now()});
+}
+
+/* 接单 */
+function takeTask(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return;
+  t.takerId='me'; t.status='doing';
+  toast('🦆 接单成功！请在'+DEADLINE[t.deadline]+'前送达');
+  switchView('orders');
+  S.orderRole='take'; S.statusFilter='全部'; render();
+}
+
+/* 我（跑腿者）送达 */
+function deliverTask(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return;
+  t.status='confirm';
+  toast('📨 已通知对方确认收货');
+  render();
+}
+
+/* 我（发布者）确认收货 → 完成结算 */
+function confirmTask(id){ completeOrder(id); }
+
+/* 模拟对方：送达 / 确认 / 接单 */
+function simDeliver(id){ const t=S.tasks.find(x=>x.id===id); if(!t)return; t.status='confirm'; toast('🦆 对方已送达，请确认收货'); render(); }
+function simConfirm(id){ completeOrder(id); }
+function simTake(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return;
+  const u=S.users['u'+rnd(10)]; t.takerId=u.id; t.status='doing';
+  toast(`${u.name} ${u.avatar} 接单了`); render();
+}
+
+/* 完成订单：担保金结算给跑腿者，跑腿者得信用分 */
+function completeOrder(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t || t.status==='done') return;
+  t.status='done';
+  if(t.takerId==='me'){
+    S.me.wallet += t.reward; S.me.done++;
+    addCredit(5,'完成订单「'+t.title+'」');
+    toast('🎉 已到账 ¥'+t.reward+'，信用 +5');
+  } else {
+    toast('🎉 订单完成，担保金已结算给跑腿者');
+  }
+  render();
+}
+
+/* 取消发布（赏金退回钱包） */
+function cancelTask(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t) return;
+  t.status='cancelled';
+  S.me.wallet += t.reward;
+  toast('已取消发布，赏金 ¥'+t.reward+' 退回钱包');
+  render();
+}
+
+/* 评价（互评） */
+function openRate(id){
+  const t=S.tasks.find(x=>x.id===id);
+  const opp = pubBadge(t.publisherId==='me' ? t.takerId : t.publisherId);
+  $('#sheet').innerHTML = `
+    <h3>评价对方</h3>
+    <div style="text-align:center;margin-bottom:10px;font-size:13px">对方：<b>${opp.avatar} ${esc(opp.name)}</b></div>
+    <div class="stars" id="stars">
+      ${[1,2,3,4,5].map(i=>`<button data-s="${i}">⭐</button>`).join('')}
+    </div>
+    <div style="text-align:center;margin-bottom:14px;font-size:12.5px;color:var(--ink-2)">互评后双方各 +2 信用分</div>
+    <button class="btn btn-primary btn-block" id="doRate">提交评价</button>`;
+  $('#mask').classList.add('show');
+  let cur=5;
+  const paint=()=>$$('#stars button').forEach(b=>b.classList.toggle('on', +b.dataset.s<=cur));
+  paint();
+  $$('#stars button').forEach(b=>b.addEventListener('click',()=>{cur=+b.dataset.s; paint();}));
+  $('#doRate').onclick=()=>{
+    t.rating=cur;
+    if(cur>=3 && opp.id!=='me' && S.users[opp.id]) S.users[opp.id].credit += 2;
+    addCredit(2,'完成互评，收到对方好评');
+    $('#mask').classList.remove('show');
+    toast('⭐ 互评完成，信用 +2');
+    render();
+  };
+}
+
+/* 发布 */
+function publish(){
+  const p=S.pub;
+  const title=$('#pubTitle').value.trim();
+  const desc=$('#pubDesc').value.trim();
+  if(!title){ toast('请填写任务标题'); return; }
+  if(!desc){ toast('请填写详细说明'); return; }
+  if(S.me.wallet < p.reward){ toast('💰 钱包余额不足，请先充值'); return; }
+  S.me.wallet -= p.reward; // 担保金托管
+  S.me.pub++;
+  S.tasks.unshift({
+    id:uid('t'), type:p.type, title, desc, reward:p.reward, deadline:p.deadline,
+    loc:$('#pubLoc').value, publisherId:'me', takerId:null, status:'open',
+    urgent:p.urgent, at:Date.now(), rating:null,
+  });
+  $('#pubTitle').value=''; $('#pubDesc').value=''; $('#descCnt').textContent='0';
+  toast('✅ 发布成功，任务已进入大厅');
+  switchView('home'); render();
+}
+
+/* ================= 事件绑定 ================= */
+document.addEventListener('click', e=>{
+  const tab=e.target.closest('.navbar .tab, .navbar .fab');
+  if(tab){ switchView(tab.dataset.view); if(tab.dataset.view==='publish') renderPublish(); return; }
+  const go=e.target.closest('[data-go]');
+  if(go){ switchView(go.dataset.go); return; }
+  const chip=e.target.closest('#typeChips [data-type]');
+  if(chip){ S.typeFilter=chip.dataset.type; renderHome(); return; }
+  const sc=e.target.closest('[data-sort]');
+  if(sc){ S.sort=sc.dataset.sort; renderHome(); return; }
+  const st=e.target.closest('[data-status]');
+  if(st){ S.statusFilter=st.dataset.status; renderOrders(); return; }
+  const role=e.target.closest('[data-role]');
+  if(role){ S.orderRole=role.dataset.role; renderOrders(); return; }
+  const tp=e.target.closest('#pubType .type-opt');
+  if(tp){ S.pub.type=tp.dataset.type; renderPublish(); return; }
+  const rw=e.target.closest('#pubReward button');
+  if(rw){ S.pub.reward=+rw.dataset.r; renderPublish(); return; }
+  const dl=e.target.closest('#pubDeadline button');
+  if(dl){ S.pub.deadline=+dl.dataset.h; renderPublish(); return; }
+  if(e.target.closest('#pubUrgent')){ S.pub.urgent=!S.pub.urgent; renderUrgent(); return; }
+  if(e.target.closest('#doPublish')){ publish(); return; }
+  const act=e.target.closest('[data-act]');
+  if(act){
+    const id=act.dataset.id, a=act.dataset.act;
+    if(a==='take') takeTask(id);
+    else if(a==='deliver') deliverTask(id);
+    else if(a==='confirm') confirmTask(id);
+    else if(a==='simDeliver') simDeliver(id);
+    else if(a==='simConfirm') simConfirm(id);
+    else if(a==='simTake') simTake(id);
+    else if(a==='cancel') cancelTask(id);
+    else if(a==='rate') openRate(id);
+    return;
+  }
+  if(e.target.closest('#mask')){ $('#mask').classList.remove('show'); return; }
+});
+
+$('#pubTitle').addEventListener('input', e=>e.target.value.length>24 && (e.target.value=e.target.value.slice(0,24)));
+$('#pubDesc').addEventListener('input', e=>{ $('#descCnt').textContent=e.target.value.length; });
+
+/* 天气 */
+(function(){
+  const ws=['☀️ 晴 24°C','⛅ 多云 21°C','🌧 小雨 18°C','☀️ 晴 26°C'];
+  $('#todayWeather').textContent = ws[rnd(ws.length)];
+})();
+
+/* 初始化 */
+switchView('home');
+render();
+</script>
+</body>
+</html>
